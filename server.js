@@ -26,20 +26,51 @@ connection.connect((err) => {
 });
 
 // Ruta para registrar un usuario
-app.post('/register', (req, res) => {
+app.post('/Register', (req, res) => {
     const { name, username, email, password } = req.body;
-    const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password) VALUES ('${name}', '${username}', '${email}', '${password}')`;
-    connection.query(INSERT_USER_QUERY, (err, results) => {
+
+    // Verificar si el correo electrónico ya existe en la base de datos
+    const CHECK_EMAIL_QUERY = `SELECT * FROM Users WHERE email = '${email}'`;
+
+    connection.query(CHECK_EMAIL_QUERY, (err, results) => {
         if (err) {
-            res.status(500).send('Error al registrar el usuario');
+            res.status(500).send('Error al verificar el correo electrónico');
         } else {
-            res.status(200).send('Usuario registrado con éxito');
+            if (results.length > 0) {
+                // El correo ya está registrado
+                res.status(409).send('El correo electrónico ya está registrado');
+            } else {
+                // El correo no está registrado, procede con la verificación de nombre de usuario
+                const CHECK_USERNAME_QUERY = `SELECT * FROM Users WHERE username = '${username}'`;
+
+                connection.query(CHECK_USERNAME_QUERY, (err, usernameResults) => {
+                    if (err) {
+                        res.status(500).send('Error al verificar el nombre de usuario');
+                    } else {
+                        if (usernameResults.length > 0) {
+                            // El nombre de usuario ya está registrado
+                            res.status(409).send('El nombre de usuario ya está registrado');
+                        } else {
+                            // El correo y el nombre de usuario no están registrados, procede con la inserción
+                            const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password) VALUES ('${name}', '${username}', '${email}', '${password}')`;
+
+                            connection.query(INSERT_USER_QUERY, (err, insertResults) => {
+                                if (err) {
+                                    res.status(500).send('Error al registrar el usuario');
+                                } else {
+                                    res.status(200).send('Usuario registrado con éxito');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
         }
     });
 });
 
 // Ruta para el inicio de sesión
-app.post('/login', (req, res) => {
+app.post('/Login', (req, res) => {
     const { email, password } = req.body;
     const SELECT_USER_QUERY = `SELECT * FROM Users WHERE email = '${email}' AND password = '${password}'`;
     connection.query(SELECT_USER_QUERY, (err, results) => {
