@@ -86,6 +86,35 @@ app.post('/Login', (req, res) => {
     });
 });
 
+// Ruta seguir a un usuario
+router.post('/seguir/:idUsuarioSeguido', (req, res) => {
+    const idUsuarioSeguidor = req.body.idUsuarioSeguidor;
+    const idUsuarioSeguido = req.params.idUsuarioSeguido;
+  
+    const query = 'INSERT INTO seguir (id_usuario_seguidor, id_usuario_seguido) VALUES (?, ?)';
+    pool.query(query, [idUsuarioSeguidor, idUsuarioSeguido], (error, results) => {
+      if (error) {
+        res.status(500).json({ error: 'Error al seguir al usuario' });
+      } else {
+        res.status(200).json({ message: 'Usuario seguido con éxito' });
+      }
+    });
+  });
+  
+  // Ruta "me gusta"
+  router.post('/like', (req, res) => {
+    const { idUsuario, idPublicacion, idComentario } = req.body; // Asegúrate de enviar estos datos en el cuerpo de la solicitud
+  
+    const query = 'INSERT INTO me_gusta (id_usuario, id_publicacion, id_comentario, fecha_like) VALUES (?, ?, ?, NOW())';
+    pool.query(query, [idUsuario, idPublicacion, idComentario], (error, results) => {
+      if (error) {
+        res.status(500).json({ error: 'Error al dar "me gusta"' });
+      } else {
+        res.status(200).json({ message: 'Me gusta agregado con éxito' });
+      }
+    });
+  });
+
 app.listen(port, () => {
     console.log(`Servidor disponible en el puerto ${port}`);
 });
