@@ -12,9 +12,9 @@ const port = 8082; // Define el puerto en el que deseas que se ejecute tu servid
 const connection = mysql.createConnection({
     host: "127.0.0.1",
     user: "root",
-    port: 3307,
+    port: 3306,
     password: "",
-    database: "DevLink"
+    database: "devlink"
 });
 
 connection.connect((err) => {
@@ -85,6 +85,35 @@ app.post('/Login', (req, res) => {
         }
     });
 });
+
+app.post('/agregarPublicaciones', (req, res) => {
+    const datos =  req.body
+    const sql = 'INSERT INTO publicaciones(titulo,contenido,likes_publicacion) VALUES ( ?, ?, ? );'
+    const values = [datos.titulo, datos.contenido, datos.likes_publicacion]
+
+    connection.query(sql,values, (err, results) => {
+        if (err) {
+            res.status(500).send('Fallo al agregar publicacion');
+        } else {
+            res.status(200).send('Publicacion agregado exitosamente');
+        }
+    })
+})
+
+app.post('/agregarComentarios', (req, res) => {
+    const datos =  req.body
+    const sql = 'INSERT INTO comentarios (comentario,id_usuario,id_publicacion) VALUES ( ?, ?, ? );'
+    const values = [datos.comentario, datos.id_usuario, datos.id_publicacion]
+
+    connection.query(sql,values, (err, results) => {
+        console.log(results)
+        if (err) {
+            res.status(500).send('Fallo al agregar comentario');
+        } else {
+            res.status(200).send('Comentario agregado exitosamente');
+        }
+    })
+})
 
 app.listen(port, () => {
     console.log(`Servidor disponible en el puerto ${port}`);
