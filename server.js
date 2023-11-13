@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -10,11 +12,11 @@ app.use(bodyParser.json());
 const port = 8082; // Define el puerto en el que deseas que se ejecute tu servidor
 
 const connection = mysql.createConnection({
-    host: "127.0.0.1",
-    user: "root",
-    port: 3306,
-    password: "",
-    database: "devlink"
+    host: process.env.SQLHOST,
+    user: process.env.SQLUSER,
+    port: process.env.SQLPORT,
+    password: process.env.SQLPASS,
+    database: process.env.SQLDB
 });
 
 connection.connect((err) => {
@@ -78,13 +80,15 @@ app.post('/Login', (req, res) => {
             res.status(500).send('Error al iniciar sesión');
         } else {
             if (results.length > 0) {
-                res.status(200).send('Inicio de sesión exitoso');
+                // Envía la información del usuario en lugar de un mensaje de éxito
+                res.status(200).json(results[0]);
             } else {
                 res.status(401).send('Credenciales inválidas');
             }
         }
     });
 });
+
 
 app.post('/agregarPublicaciones', (req, res) => {
     const datos =  req.body
