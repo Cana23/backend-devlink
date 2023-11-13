@@ -119,6 +119,66 @@ app.post('/agregarComentarios', (req, res) => {
     })
 })
 
+// Ruta para dar like a una publicación
+app.post('/posts/:postId/like', (req, res) => {
+    const { postId, userId } = req.body;
+    const sql = 'INSERT INTO me_gusta (id_publicacion, id_usuario, fecha_like) VALUES (?, ?, NOW())';
+    const values = [postId, userId];
+
+    connection.query(sql, values, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al dar like a la publicación');
+        } else {
+            res.status(200).send('Like agregado a la publicación exitosamente');
+        }
+    });
+});
+
+// Ruta para quitar like a una publicación
+app.delete('/posts/:postId/unlike', (req, res) => {
+    const { postId, userId } = req.body;
+    const sql = 'DELETE FROM me_gusta WHERE id_publicacion = ? AND id_usuario = ?';
+    const values = [postId, userId];
+
+    connection.query(sql, values, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al quitar like de la publicación');
+        } else {
+            res.status(200).send('Like eliminado de la publicación exitosamente');
+        }
+    });
+});
+
+// Ruta para dar like a un comentario
+app.post('/comentarios/:comentarioId/like', (req, res) => {
+    const { comentarioId, userId } = req.body;
+    const sql = 'INSERT INTO me_gusta (id_comentario, id_usuario, fecha_like) VALUES (?, ?, NOW())';
+    const values = [comentarioId, userId];
+
+    connection.query(sql, values, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al dar like al comentario');
+        } else {
+            res.status(200).send('Like agregado al comentario exitosamente');
+        }
+    });
+});
+
+// Ruta para quitar like a un comentario
+app.delete('/comentarios/:comentarioId/unlike', (req, res) => {
+    const { comentarioId, userId } = req.body;
+    const sql = 'DELETE FROM me_gusta WHERE id_comentario = ? AND id_usuario = ?';
+    const values = [comentarioId, userId];
+
+    connection.query(sql, values, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al quitar like del comentario');
+        } else {
+            res.status(200).send('Like eliminado del comentario exitosamente');
+        }
+    });
+});
+
 app.listen(port, () => {
     console.log(`Servidor disponible en el puerto ${port}`);
 });
