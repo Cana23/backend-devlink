@@ -12,11 +12,11 @@ app.use(bodyParser.json());
 const port = 8082; // Define el puerto en el que deseas que se ejecute tu servidor
 
 const connection = mysql.createConnection({
-    host: process.env.SQLHOST,
-    user: process.env.SQLUSER,
-    port: process.env.SQLPORT,
-    password: process.env.SQLPASS,
-    database: process.env.SQLDB
+    host: 'localhost',
+    user: 'root',
+    port: 3306,
+    password: '',
+    database: 'devlink',
 });
 
 connection.connect((err) => {
@@ -89,6 +89,20 @@ app.post('/Login', (req, res) => {
     });
 });
 
+app.get('/publicaciones', (req, res) => {
+    console.log('Request recibido en /publicaciones'); // Add this line
+    const sql = 'SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching publicaciones:', err); // Add this line
+            res.status(500).send('Fallo al obtener publicaciones');
+        } else {
+            console.log('Publicaciones obtenidas correctamente'); // Add this line
+            res.status(200).json(results);
+        }
+    });
+});
 
 app.post('/agregarPublicaciones', (req, res) => {
     const datos =  req.body

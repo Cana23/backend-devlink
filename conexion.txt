@@ -1,0 +1,5 @@
+    host: process.env.SQLHOST,
+    user: process.env.SQLUSER,
+    port: process.env.SQLPORT,
+    password: process.env.SQLPASS,
+    database: process.env.SQLDB
