@@ -90,7 +90,6 @@ app.post('/Login', (req, res) => {
 });
 
 app.get('/publicaciones', (req, res) => {
-    console.log('Request recibido en /publicaciones'); // Add this line
     const sql = 'SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
 
     connection.query(sql, (err, results) => {
@@ -98,7 +97,6 @@ app.get('/publicaciones', (req, res) => {
             console.error('Error fetching publicaciones:', err); // Add this line
             res.status(500).send('Fallo al obtener publicaciones');
         } else {
-            console.log('Publicaciones obtenidas correctamente'); // Add this line
             res.status(200).json(results);
         }
     });
@@ -106,11 +104,13 @@ app.get('/publicaciones', (req, res) => {
 
 app.post('/agregarPublicaciones', (req, res) => {
     const datos =  req.body
-    const sql = 'INSERT INTO publicaciones(titulo,contenido,likes_publicacion) VALUES ( ?, ?, ? );'
-    const values = [datos.titulo, datos.contenido, datos.likes_publicacion]
+    console.log(datos)
+    const sql = 'INSERT INTO publicaciones(titulo,contenido,likes_publicacion,id_usuario) VALUES ( ?, ?, ?, ?);'
+    const values = [datos.titulo, datos.contenido, datos.likes_publicacion, datos.id_usuario]
 
     connection.query(sql,values, (err, results) => {
         if (err) {
+            console.log(results)
             res.status(500).send('Fallo al agregar publicacion');
         } else {
             res.status(200).send('Publicacion agregado exitosamente');
