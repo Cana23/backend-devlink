@@ -89,9 +89,49 @@ app.post("/Login", (req, res) => {
   });
 });
 
-app.get("/publicaciones", (req, res) => {
-  const sql =
-    "SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;";
+app.get('/perfil/:user', (req, res) => {
+    const user = req.params.user
+    const sql = 'SELECT * FROM Users WHERE username = ?'
+
+    connection.query(sql,user, (err, results) => {
+        if (err) {
+            res.status(500).send('Fallo al usuario');
+        } else {
+            res.status(200).json(results);
+        }
+    });
+});
+
+app.get('/publicaciones/:user', (req, res) => {
+    const user = req.params.user
+    const sql = 'SELECT p.*, u.username AS usuario, u.email AS correo FROM publicaciones p INNER JOIN Users u ON p.id_usuario = u.id WHERE u.username =  ?'
+    console.log(user)
+
+    connection.query(sql,user, (err, results) => {
+        if (err) {
+            res.status(500).send('Fallo al conseguir publicaciones');
+        } else {
+            res.status(200).json(results);
+        }
+    });
+});
+
+app.get('/comentarios/:user', (req, res) => {
+    const user = req.params.user
+    const sql = 'SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username =  ?'
+    console.log(user)
+
+    connection.query(sql,user, (err, results) => {
+        if (err) {
+            res.status(500).send('Fallo al conseguir publicaciones');
+        } else {
+            res.status(200).json(results);
+        }
+    });
+});
+
+app.get('/publicaciones', (req, res) => {
+    const sql = 'SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
 
   connection.query(sql, (err, results) => {
     if (err) {
