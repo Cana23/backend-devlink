@@ -19,7 +19,7 @@ const port = 8082; // Define el puerto en el que deseas que se ejecute tu servid
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    port: 3306,
+    port: 3307,
     password: '',
     database: 'devlink',
 });
@@ -269,4 +269,18 @@ app.delete('/comentarios/:comentarioId/unlike', (req, res) => {
 
 app.listen(port, () => {
     console.log(`Servidor disponible en el puerto ${port}`);
+});
+
+
+
+app.get('/users', (req, res) => {
+    const SELECT_ALL_USERS_QUERY = 'SELECT * FROM Users';
+
+    connection.query(SELECT_ALL_USERS_QUERY, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al obtener los usuarios');
+        } else {
+            res.status(200).json(results); // Enviar la lista de usuarios como respuesta
+        }
+    });
 });
