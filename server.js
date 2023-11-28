@@ -3,11 +3,16 @@ const mysql = require('mysql');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
+const multer = require('multer');
+const path = require('path');
+
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static('uploads'));
 
 const port = 8082; // Define el puerto en el que deseas que se ejecute tu servidor
 
@@ -26,6 +31,18 @@ connection.connect((err) => {
     }
     console.log('Conexión a la base de datos exitosa');
 });
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads/'); // Uploads folder where files will be saved
+    },
+    filename: (req, file, cb) => {
+      const fileName = `${Date.now()}-${file.originalname}`;
+      cb(null, fileName);
+    },
+  });
+  
+  const upload = multer({ storage: storage });
 
 // Ruta para registrar un usuario
 app.post('/Register', (req, res) => {
@@ -143,29 +160,44 @@ app.get('/publicaciones', (req, res) => {
     });
 });
 
-app.post('/agregarPublicaciones', (req, res) => {
-    const datos =  req.body
-    console.log(datos)
-    const sql = 'INSERT INTO publicaciones(titulo,contenido,likes_publicacion,id_usuario) VALUES ( ?, ?, ?, ?);'
-    const values = [datos.titulo, datos.contenido, datos.likes_publicacion, datos.id_usuario]
-
-    connection.query(sql,values, (err, results) => {
+app.post('/agregarPublicaciones', upload.single('img'), (req, res) => {
+    try {
+      const datos = req.body;
+      const imagePath = req.file.path; // Path to the uploaded file
+  
+      console.log(datos);
+  
+      const sql =
+        'INSERT INTO publicaciones(titulo, contenido, likes_publicacion, id_usuario, img) VALUES (?, ?, ?, ?, ?);';
+      const values = [
+        datos.titulo,
+        datos.contenido,
+        datos.likes_publicacion,
+        datos.id_usuario,
+        imagePath, // Save the file path in the database
+      ];
+  
+      connection.query(sql, values, (err, results) => {
         if (err) {
-            console.log(results)
-            res.status(500).send('Fallo al agregar publicacion');
+          console.error(err);
+          res.status(500).send('Fallo al agregar publicacion');
         } else {
-            res.status(200).send('Publicacion agregado exitosamente');
+          res.status(200).send('Publicacion agregado exitosamente');
         }
-    })
-})
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error en el servidor');
+    }
+  });
 
 app.post('/agregarComentarios', (req, res) => {
     const datos =  req.body
+    console.log(datos.comentario)
     const sql = 'INSERT INTO comentarios (comentario,id_usuario,id_publicacion) VALUES ( ?, ?, ? );'
     const values = [datos.comentario, datos.id_usuario, datos.id_publicacion]
 
     connection.query(sql,values, (err, results) => {
-        console.log(results)
         if (err) {
             res.status(500).send('Fallo al agregar comentario');
         } else {
