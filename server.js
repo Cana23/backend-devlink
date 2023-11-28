@@ -193,12 +193,13 @@ app.post('/agregarPublicaciones', upload.single('img'), (req, res) => {
 
 app.post('/agregarComentarios', (req, res) => {
     const datos =  req.body
-    console.log(datos.comentario)
+    console.log(datos)
     const sql = 'INSERT INTO comentarios (comentario,id_usuario,id_publicacion) VALUES ( ?, ?, ? );'
     const values = [datos.comentario, datos.id_usuario, datos.id_publicacion]
 
     connection.query(sql,values, (err, results) => {
         if (err) {
+            console.log('Error: ', err)
             res.status(500).send('Fallo al agregar comentario');
         } else {
             res.status(200).send('Comentario agregado exitosamente');
