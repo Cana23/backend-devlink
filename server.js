@@ -19,7 +19,7 @@ const port = 8082; // Define el puerto en el que deseas que se ejecute tu servid
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    port: 3307,
+    port: 3306,
     password: '',
     database: 'devlink',
 });
