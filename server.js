@@ -46,7 +46,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post('/Register', async (req, res) => {
-    const { name, username, email, password } = req.body;
+    const { name, username, email, password, lat, lng } = req.body;
+    console.log(lat)
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -67,7 +68,7 @@ app.post('/Register', async (req, res) => {
                             if (usernameResults.length > 0) {
                                 res.status(409).send('El nombre de usuario ya está registrado');
                             } else {
-                                const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password) VALUES ('${name}', '${username}', '${email}', '${hashedPassword}')`;
+                                const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password, lat, lng) VALUES ('${name}', '${username}', '${email}', '${hashedPassword}', ${lat},${lng})`;
                                 connection.query(INSERT_USER_QUERY, (err, insertResults) => {
                                     if (err) {
                                         res.status(500).send('Error al registrar el usuario');
