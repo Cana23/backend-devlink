@@ -20,7 +20,7 @@ const port = 8082;
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    port: 3307,
+    port: 3306,
     password: '',
     database: 'devlink',
 });
