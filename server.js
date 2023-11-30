@@ -1,15 +1,21 @@
-const express = require("express");
-const mysql = require("mysql");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const dotenv = require("dotenv");
+const express = require('express');
+const mysql = require('mysql');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const dotenv = require('dotenv');
+const multer = require('multer');
+const path = require('path');
+const bcrypt = require('bcrypt'); // Importa bcrypt
+
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static('uploads'));
 
-const port = 8082; // Define el puerto en el que deseas que se ejecute tu servidor
+const port = 8082;
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -27,66 +33,81 @@ connection.connect((err) => {
   console.log("Conexión a la base de datos exitosa");
 });
 
-// Ruta para registrar un usuario
-app.post("/Register", (req, res) => {
-  const { name, username, email, password } = req.body;
-
-  // Verificar si el correo electrónico ya existe en la base de datos
-  const CHECK_EMAIL_QUERY = `SELECT * FROM Users WHERE email = '${email}'`;
-
-  connection.query(CHECK_EMAIL_QUERY, (err, results) => {
-    if (err) {
-      res.status(500).send("Error al verificar el correo electrónico");
-    } else {
-      if (results.length > 0) {
-        // El correo ya está registrado
-        res.status(409).send("El correo electrónico ya está registrado");
-      } else {
-        // El correo no está registrado, procede con la verificación de nombre de usuario
-        const CHECK_USERNAME_QUERY = `SELECT * FROM Users WHERE username = '${username}'`;
-
-        connection.query(CHECK_USERNAME_QUERY, (err, usernameResults) => {
-          if (err) {
-            res.status(500).send("Error al verificar el nombre de usuario");
-          } else {
-            if (usernameResults.length > 0) {
-              // El nombre de usuario ya está registrado
-              res.status(409).send("El nombre de usuario ya está registrado");
-            } else {
-              // El correo y el nombre de usuario no están registrados, procede con la inserción
-              const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password) VALUES ('${name}', '${username}', '${email}', '${password}')`;
-
-              connection.query(INSERT_USER_QUERY, (err, insertResults) => {
-                if (err) {
-                  res.status(500).send("Error al registrar el usuario");
-                } else {
-                  res.status(200).send("Usuario registrado con éxito");
-                }
-              });
-            }
-          }
-        });
-      }
-    }
-  });
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const fileName = `${Date.now()}-${file.originalname}`;
+        cb(null, fileName);
+    },
 });
 
-// Ruta para el inicio de sesión
-app.post("/Login", (req, res) => {
-  const { email, password } = req.body;
-  const SELECT_USER_QUERY = `SELECT * FROM Users WHERE email = '${email}' AND password = '${password}'`;
-  connection.query(SELECT_USER_QUERY, (err, results) => {
-    if (err) {
-      res.status(500).send("Error al iniciar sesión");
-    } else {
-      if (results.length > 0) {
-        // Envía la información del usuario en lugar de un mensaje de éxito
-        res.status(200).json(results[0]);
-      } else {
-        res.status(401).send("Credenciales inválidas");
-      }
+const upload = multer({ storage: storage });
+
+app.post('/Register', async (req, res) => {
+    const { name, username, email, password, lat, lng } = req.body;
+    console.log(lat)
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const CHECK_EMAIL_QUERY = `SELECT * FROM Users WHERE email = '${email}'`;
+        connection.query(CHECK_EMAIL_QUERY, (err, results) => {
+            if (err) {
+                res.status(500).send('Error al verificar el correo electrónico');
+            } else {
+                if (results.length > 0) {
+                    res.status(409).send('El correo electrónico ya está registrado');
+                } else {
+                    const CHECK_USERNAME_QUERY = `SELECT * FROM Users WHERE username = '${username}'`;
+                    connection.query(CHECK_USERNAME_QUERY, (err, usernameResults) => {
+                        if (err) {
+                            res.status(500).send('Error al verificar el nombre de usuario');
+                        } else {
+                            if (usernameResults.length > 0) {
+                                res.status(409).send('El nombre de usuario ya está registrado');
+                            } else {
+                                const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password, lat, lng) VALUES ('${name}', '${username}', '${email}', '${hashedPassword}', ${lat},${lng})`;
+                                connection.query(INSERT_USER_QUERY, (err, insertResults) => {
+                                    if (err) {
+                                        res.status(500).send('Error al registrar el usuario');
+                                    } else {
+                                        res.status(200).send('Usuario registrado con éxito');
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    } catch (error) {
+        res.status(500).send('Error en el servidor');
     }
-  });
+});
+
+app.post('/Login', async (req, res) => {
+    const { email, password } = req.body;
+    const SELECT_USER_QUERY = `SELECT * FROM Users WHERE email = '${email}'`;
+
+    connection.query(SELECT_USER_QUERY, async (err, results) => {
+        if (err) {
+            res.status(500).send('Error al iniciar sesión');
+        } else {
+            if (results.length > 0) {
+                const user = results[0];
+                const match = await bcrypt.compare(password, user.password);
+                if (match) {
+                    res.status(200).json(user);
+                } else {
+                    res.status(401).send('Credenciales inválidas');
+                }
+            } else {
+                res.status(401).send('Credenciales inválidas');
+            }
+        }
+    });
 });
 
 app.get('/perfil/:user', (req, res) => {
@@ -143,44 +164,53 @@ app.get('/publicaciones', (req, res) => {
   });
 });
 
-app.post("/agregarPublicaciones", (req, res) => {
-  const datos = req.body;
-  console.log(datos);
-  const sql =
-    "INSERT INTO publicaciones(titulo,contenido,likes_publicacion,id_usuario) VALUES ( ?, ?, ?, ?);";
-  const values = [
-    datos.titulo,
-    datos.contenido,
-    datos.likes_publicacion,
-    datos.id_usuario,
-  ];
-
-  connection.query(sql, values, (err, results) => {
-    if (err) {
-      console.log(results);
-      res.status(500).send("Fallo al agregar publicacion");
-    } else {
-      res.status(200).send("Publicacion agregado exitosamente");
+app.post('/agregarPublicaciones', upload.single('img'), (req, res) => {
+    try {
+      const datos = req.body;
+      const imagePath = req.file.path; // Path to the uploaded file
+  
+      console.log(datos);
+  
+      const sql =
+        'INSERT INTO publicaciones(titulo, contenido, likes_publicacion, id_usuario, img) VALUES (?, ?, ?, ?, ?);';
+      const values = [
+        datos.titulo,
+        datos.contenido,
+        datos.likes_publicacion,
+        datos.id_usuario,
+        imagePath, // Save the file path in the database
+      ];
+  
+      connection.query(sql, values, (err, results) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send('Fallo al agregar publicacion');
+        } else {
+          res.status(200).send('Publicacion agregado exitosamente');
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error en el servidor');
     }
   });
-});
 
-app.post("/agregarComentarios", (req, res) => {
-  const datos = req.body;
-  const sql =
-    "INSERT INTO comentarios (comentario,id_usuario,id_publicacion) VALUES ( ?, ?, ? );";
-  const values = [datos.comentario, datos.id_usuario, datos.id_publicacion];
+app.post('/agregarComentarios', (req, res) => {
+    const datos =  req.body
+    console.log(datos)
+    const sql = 'INSERT INTO comentarios (comentario,id_usuario,id_publicacion) VALUES ( ?, ?, ? );'
+    const values = [datos.comentario, datos.id_usuario, datos.id_publicacion]
 
-  connection.query(sql, values, (err, results) => {
-    console.log(results);
-    if (err) {
-      res.status(500).send("Fallo al agregar comentario");
-    } else {
-      res.status(200).send("Comentario agregado exitosamente");
-    }
-  });
-});
-/*
+    connection.query(sql,values, (err, results) => {
+        if (err) {
+            console.log('Error: ', err)
+            res.status(500).send('Fallo al agregar comentario');
+        } else {
+            res.status(200).send('Comentario agregado exitosamente');
+        }
+    })
+})
+
 // Ruta para dar like a una publicación
 app.post("/posts/:postId/like", (req, res) => {
   const { postId, userId } = req.body;
@@ -248,7 +278,7 @@ app.delete("/comentarios/:comentarioId/unlike", (req, res) => {
     }
   });
 });
-*/
+
 app.listen(port, () => {
   console.log(`Servidor disponible en el puerto ${port}`);
 });
@@ -334,4 +364,18 @@ app.get('/comentarios/:userId', (req, res) => {
           res.status(200).json(results);
       }
   });
+});
+
+
+
+app.get('/users', (req, res) => {
+    const SELECT_ALL_USERS_QUERY = 'SELECT * FROM Users';
+
+    connection.query(SELECT_ALL_USERS_QUERY, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al obtener los usuarios');
+        } else {
+            res.status(200).json(results); // Enviar la lista de usuarios como respuesta
+        }
+    });
 });
