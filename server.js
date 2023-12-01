@@ -54,6 +54,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
 connection.connect((err) => {
     if (err) {
         console.error('Error de conexión: ' + err.stack);
@@ -256,6 +257,31 @@ app.post('/add/github/:id', (req, res) => {
 });
 
 
+app.put('/editar/foto', upload.single('img'), (req, res) => {
+    try {
+
+      const userId = req.body.id_usuario;
+      const imagePath = req.file.path; // Path to the uploaded file
+  
+  
+      const sql ='UPDATE Users SET img = ? WHERE id = ?;';
+      const values = [ imagePath, userId ];
+  
+      connection.query(sql, values, (err, results) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send('Fallo al agregar publicacion');
+        } else {
+          res.status(200).send('Publicacion agregado exitosamente');
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error en el servidor');
+    }
+  });
+
+
 app.get('/perfil/:user', (req, res) => {
     const user = req.params.user
     const sql = 'SELECT * FROM Users WHERE username = ?'
@@ -285,19 +311,21 @@ app.get('/publicaciones/:user', (req, res) => {
     });
 });
 
-app.get('/comentarios/:user', (req, res) => {
-    const user = req.params.user
-    const sql = 'SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username =  ?'
-    console.log(user)
+app.get('/comentariosRender/:user', (req, res) => {
+    const user = req.params.user;
+    const sqlSelect = 'SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username = ?';
 
-    connection.query(sql,user, (err, results) => {
+    connection.query(sqlSelect, user, (err, results) => {
         if (err) {
-            res.status(500).send('Fallo al conseguir publicaciones');
+            res.status(500).send('Fallo al conseguir comentarios');
+            console.log(err);
         } else {
             res.status(200).json(results);
+            console.log(results);
         }
     });
 });
+
 
 app.get('/publicaciones', (req, res) => {
     const sql = 'SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
@@ -495,6 +523,27 @@ app.put('/eliminar/usuario/:id', (req, res) => {
             console.log(results)
         } else {
             res.status(200).send('Usuario eliminado exitosamente');
+        }
+    })
+})
+
+app.put('/ubicacion/:id', (req, res) => {
+    console.log(req.body.coordinates)
+    const data = req.body.coordinates
+    const id = req.params.id
+
+    console.log(id)
+
+    sql = 'UPDATE Users SET lat = ?, lng = ? WHERE id = ?;'
+    values = [data.lat, data.lng, id]
+
+    connection.query(sql,values, (err, results) => {
+        if (err) {
+            res.status(500).send('Fallo al cambiar coordenadas');
+            console.log(err)
+        } else {
+            res.status(200).send('coordenadas cambiadas exitosamente');
+            console.log('Registrado en: ', data)
         }
     })
 })
