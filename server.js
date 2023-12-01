@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const multer = require('multer');
 const path = require('path');
-const bcrypt = require('bcrypt'); // Importa bcrypt
 
 const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
@@ -34,7 +33,7 @@ app.use(passport.session());
 
 
 
-const port = 8082;
+const port = 8082; // Define el puerto en el que deseas que se ejecute tu servidor
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -46,11 +45,11 @@ const connection = mysql.createConnection({
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+      cb(null, 'uploads/'); // Uploads folder where files will be saved
     },
     filename: (req, file, cb) => {
-        const fileName = `${Date.now()}-${file.originalname}`;
-        cb(null, fileName);
+      const fileName = `${Date.now()}-${file.originalname}`;
+      cb(null, fileName);
     },
 });
 
@@ -160,13 +159,8 @@ app.post('/Login', async (req, res) => {
             res.status(500).send('Error al iniciar sesión');
         } else {
             if (results.length > 0) {
-                const user = results[0];
-                const match = await bcrypt.compare(password, user.password);
-                if (match) {
-                    res.status(200).json(user);
-                } else {
-                    res.status(401).send('Credenciales inválidas');
-                }
+                // Envía la información del usuario en lugar de un mensaje de éxito
+                res.status(200).json(results[0]);
             } else {
                 res.status(401).send('Credenciales inválidas');
             }
@@ -365,65 +359,7 @@ app.post('/agregarComentarios', (req, res) => {
     })
 })
 
-// Ruta para dar like a una publicación
-app.post('/posts/:postId/like', (req, res) => {
-    const { postId, userId } = req.body;
-    const sql = 'INSERT INTO me_gusta (id_publicacion, id_usuario, fecha_like) VALUES (?, ?, NOW())';
-    const values = [postId, userId];
 
-    connection.query(sql, values, (err, results) => {
-        if (err) {
-            res.status(500).send('Error al dar like a la publicación');
-        } else {
-            res.status(200).send('Like agregado a la publicación exitosamente');
-        }
-    });
-});
-
-// Ruta para quitar like a una publicación
-app.delete('/posts/:postId/unlike', (req, res) => {
-    const { postId, userId } = req.body;
-    const sql = 'DELETE FROM me_gusta WHERE id_publicacion = ? AND id_usuario = ?';
-    const values = [postId, userId];
-
-    connection.query(sql, values, (err, results) => {
-        if (err) {
-            res.status(500).send('Error al quitar like de la publicación');
-        } else {
-            res.status(200).send('Like eliminado de la publicación exitosamente');
-        }
-    });
-});
-
-// Ruta para dar like a un comentario
-app.post('/comentarios/:comentarioId/like', (req, res) => {
-    const { comentarioId, userId } = req.body;
-    const sql = 'INSERT INTO me_gusta (id_comentario, id_usuario, fecha_like) VALUES (?, ?, NOW())';
-    const values = [comentarioId, userId];
-
-    connection.query(sql, values, (err, results) => {
-        if (err) {
-            res.status(500).send('Error al dar like al comentario');
-        } else {
-            res.status(200).send('Like agregado al comentario exitosamente');
-        }
-    });
-});
-
-// Ruta para quitar like a un comentario
-app.delete('/comentarios/:comentarioId/unlike', (req, res) => {
-    const { comentarioId, userId } = req.body;
-    const sql = 'DELETE FROM me_gusta WHERE id_comentario = ? AND id_usuario = ?';
-    const values = [comentarioId, userId];
-
-    connection.query(sql, values, (err, results) => {
-        if (err) {
-            res.status(500).send('Error al quitar like del comentario');
-        } else {
-            res.status(200).send('Like eliminado del comentario exitosamente');
-        }
-    });
-});
 
 app.listen(port, () => {
     console.log(`Servidor disponible en el puerto ${port}`);
@@ -442,6 +378,63 @@ app.get('/users', (req, res) => {
         }
     });
 });
+
+app.get('/likes/:postId', (req, res) => {
+    const postId = req.params.postId;
+
+    const GET_LIKES_QUERY = 'SELECT COUNT(*) AS likesCount FROM me_gusta WHERE id_publicacion = ?';
+
+    connection.query(GET_LIKES_QUERY, [postId], (err, results) => {
+        if (err) {
+            console.error('Error al obtener likes:', err);
+            res.status(500).send('Error al obtener likes');
+        } else {
+            const likesCount = results[0].likesCount;
+            res.status(200).json({ likesCount });
+        }
+    });
+});
+
+app.post('/like', (req, res) => {
+    const { postId, userId } = req.body;
+
+    // Verificar si el usuario ya dio like
+    const CHECK_LIKE_QUERY = 'SELECT * FROM me_gusta WHERE id_publicacion = ? AND id_usuario = ?';
+
+    connection.query(CHECK_LIKE_QUERY, [postId, userId], (err, results) => {
+        if (err) {
+            console.error('Error al verificar like:', err);
+            res.status(500).send('Error al verificar like');
+        } else {
+            if (results.length > 0) {
+                // Si ya existe un like, eliminarlo
+                const DELETE_LIKE_QUERY = 'DELETE FROM me_gusta WHERE id_publicacion = ? AND id_usuario = ?';
+
+                connection.query(DELETE_LIKE_QUERY, [postId, userId], (deleteErr) => {
+                    if (deleteErr) {
+                        console.error('Error al eliminar like:', deleteErr);
+                        res.status(500).send('Error al eliminar like');
+                    } else {
+                        res.status(200).send('Like eliminado exitosamente');
+                    }
+                });
+            } else {
+                // Si no existe un like, agregarlo
+                const ADD_LIKE_QUERY = 'INSERT INTO me_gusta (id_publicacion, id_usuario, fecha_like) VALUES (?, ?, NOW())';
+
+                connection.query(ADD_LIKE_QUERY, [postId, userId], (addErr) => {
+                    if (addErr) {
+                        console.error('Error al agregar like:', addErr);
+                        res.status(500).send('Error al agregar like');
+                    } else {
+                        res.status(200).send('Like agregado exitosamente');
+                    }
+                });
+            }
+        }
+    });
+});
+
 
 app.put('/editar/email/:id', (req, res) => {
     const id = req.params.id

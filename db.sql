@@ -1,6 +1,5 @@
 create database DevLink;
-USE DevLink;
-
+use DevLink;
 CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
@@ -17,7 +16,7 @@ INSERT INTO Users (name, username, email, password, description) VALUES ('Octavi
 														   ('Gabo', 'DarkShadowXx64', 'Gabo@gmail.com', 'Patito24','Meow, meow, meow'),
                                                            ('Ethan', 'Cana23', 'Ethan@gmail.com', 'Patito24', 'Ladridos, yo que vrga se');
 
-
+select * from Users;
 CREATE TABLE publicaciones (
 	id INT PRIMARY KEY AUTO_INCREMENT,
     titulo VARCHAR(50) NOT NULL,
@@ -32,10 +31,10 @@ CREATE TABLE publicaciones (
 INSERT INTO publicaciones(titulo,contenido,likes_publicacion,id_Usuario,img) VALUES ('Valores de teste', 'Contenido de tsteo papito',0,1,'https://i.pinimg.com/736x/aa/62/d3/aa62d34b2fb002fd55be6c080520998d.jpg');
 SELECT * FROM publicaciones ;
 
-update Users set lon = -86.85026550292969 where id = 1;
+update Users set lng = -86.85026550292969 where id = 1;
 
 
-SELECT * FROM comentarios;
+
 
 CREATE TABLE comentarios (
 	id INT PRIMARY KEY AUTO_INCREMENT,
@@ -53,7 +52,18 @@ SELECT publicaciones.*, Users.name AS nombre_usuario FROM publicaciones INNER JO
 
 SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;
 
-
+select * from publicaciones;
+CREATE TABLE me_gusta (
+    id_like INT PRIMARY KEY AUTO_INCREMENT,
+    id_publicacion INT NOT NULL,
+    id_usuario INT NOT NULL,
+    id_comentario INT,
+    fecha_like DATETIME NOT NULL,
+    FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id),
+    FOREIGN KEY (id_comentario) REFERENCES comentarios(id),
+    FOREIGN KEY (id_usuario) REFERENCES Users(id)
+);
+select * from me_gusta;
 select * from Users where username = 'dorer';
 select * from comentarios;
 
@@ -114,5 +124,4 @@ WHERE
 SELECT publicaciones.*, Users.username AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;
 
 SELECT p.*, u.username AS usuario, u.email AS correo FROM publicaciones p INNER JOIN Users u ON p.id_usuario = u.id WHERE u.username = 'MrDorer';
-SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username =  'MrDorer'
-
+SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username =  'MrDorer';
