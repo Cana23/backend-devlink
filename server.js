@@ -282,3 +282,239 @@ app.post('/like', (req, res) => {
         }
     });
 });
+
+
+// TODO: TABLA CRUD
+
+// ? USUARIOS
+
+
+// GET un usuario
+
+app.get('/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const SELECT_USER_BY_ID_QUERY = 'SELECT * FROM Users WHERE id = ?';
+
+    connection.query(SELECT_USER_BY_ID_QUERY, [userId], (err, results) => {
+        if (err) {
+            res.status(500).send('Error al obtener el usuario');
+        } else {
+            if (results.length > 0) {
+                res.status(200).json(results[0]); // Enviar el usuario encontrado como respuesta
+            } else {
+                res.status(404).send('Usuario no encontrado');
+            }
+        }
+    });
+});
+
+
+// anadir
+app.post('/users', (req, res) => {
+    const { name, username, email, password, description, lat, lng } = req.body;
+
+    // Verificar si el correo electrónico ya existe en la base de datos
+    const CHECK_EMAIL_QUERY = `SELECT * FROM Users WHERE email = '${email}'`;
+
+    connection.query(CHECK_EMAIL_QUERY, (err, results) => {
+        if (err) {
+            res.status(500).send('Error al verificar el correo electrónico');
+        } else {
+            if (results.length > 0) {
+                // El correo ya está registrado
+                res.status(409).send('El correo electrónico ya está registrado');
+            } else {
+                // El correo no está registrado, procede con la verificación de nombre de usuario
+                const CHECK_USERNAME_QUERY = `SELECT * FROM Users WHERE username = '${username}'`;
+
+                connection.query(CHECK_USERNAME_QUERY, (err, usernameResults) => {
+                    if (err) {
+                        res.status(500).send('Error al verificar el nombre de usuario');
+                    } else {
+                        if (usernameResults.length > 0) {
+                            // El nombre de usuario ya está registrado
+                            res.status(409).send('El nombre de usuario ya está registrado');
+                        } else {
+                            // El correo y el nombre de usuario no están registrados, procede con la inserción
+                            const INSERT_USER_QUERY = `INSERT INTO Users (name, username, email, password, description, lat, lng) VALUES ('${name}', '${username}', '${email}', '${password}', '${description}', '${lat}', '${lng}')`;
+
+                            connection.query(INSERT_USER_QUERY, (err, insertResults) => {
+                                if (err) {
+                                    res.status(500).send('Error al agregar el usuario');
+                                } else {
+                                    res.status(200).send('Usuario agregado con éxito');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    });
+});
+// editar
+app.put('/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const { name, username, email, password, description, lat, lng } = req.body;
+    const UPDATE_USER_QUERY = 'UPDATE Users SET name=?, username=?, email=?, password=?, description=?, lat=?, lng=? WHERE id=?';
+
+    connection.query(
+        UPDATE_USER_QUERY,
+        [name, username, email, password, description, lat, lng, userId],
+        (err, results) => {
+            if (err) {
+                res.status(500).send('Error al editar el usuario');
+            } else {
+                res.status(200).send('Usuario editado con éxito');
+            }
+        }
+    );
+});
+// eliminar
+app.delete('/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const DELETE_USER_QUERY = 'DELETE FROM Users WHERE id = ?';
+
+    connection.query(DELETE_USER_QUERY, [userId], (err, results) => {
+        if (err) {
+            res.status(500).send('Error al eliminar el usuario');
+        } else {
+            res.status(200).send('Usuario eliminado con éxito');
+        }
+    });
+});
+
+
+// ? PUBLICACIONES
+
+
+// get una publicacion
+
+app.get('/publicaciones/:id', (req, res) => {
+    const postId = req.params.id;
+    const SELECT_PUBLICACION_BY_ID_QUERY = `
+        SELECT * FROM publicaciones WHERE id = ?
+    `;
+
+    connection.query(SELECT_PUBLICACION_BY_ID_QUERY, [postId], (err, results) => {
+        if (err) {
+            console.error('Error fetching publicacion by id:', err);
+            res.status(500).send('Fallo al obtener la publicación');
+        } else {
+            if (results.length > 0) {
+                res.status(200).json(results[0]); // Enviar la publicación encontrada como respuesta
+            } else {
+                res.status(404).send('Publicación no encontrada');
+            }
+        }
+    });
+});
+
+
+// editar
+app.put('/publicaciones/:id', (req, res) => {
+    const postId = req.params.id;
+    const { titulo, contenido, img, likes_publicacion } = req.body;
+    const UPDATE_PUBLICACION_QUERY = 'UPDATE publicaciones SET titulo=?, contenido=?, img=?, likes_publicacion=? WHERE id=?';
+
+    connection.query(
+        UPDATE_PUBLICACION_QUERY,
+        [titulo, contenido, img, likes_publicacion, postId],
+        (err, results) => {
+            if (err) {
+                res.status(500).send('Error al editar la publicación');
+            } else {
+                res.status(200).send('Publicación editada con éxito');
+            }
+        }
+    );
+});
+// eliminar
+app.delete('/publicaciones/:id', (req, res) => {
+    const postId = req.params.id;
+    const DELETE_PUBLICACION_QUERY = 'DELETE FROM publicaciones WHERE id = ?';
+
+    connection.query(DELETE_PUBLICACION_QUERY, [postId], (err, results) => {
+        if (err) {
+            res.status(500).send('Error al eliminar la publicación');
+        } else {
+            res.status(200).send('Publicación eliminada con éxito');
+        }
+    });
+});
+
+
+// ? COMENTARIOS
+
+// get all comentarios
+
+app.get('/comentarios', (req, res) => {
+    const SELECT_ALL_COMMENTS_QUERY = `
+        SELECT * FROM comentarios;
+    `;
+
+    connection.query(SELECT_ALL_COMMENTS_QUERY, (err, results) => {
+        if (err) {
+            console.error('Error fetching comments:', err);
+            res.status(500).send('Fallo al obtener comentarios');
+        } else {
+            res.status(200).json(results);
+        }
+    });
+});
+
+
+// get un comentario
+
+app.get('/comentarios/:id', (req, res) => {
+    const comentarioId = req.params.id;
+    const SELECT_COMMENT_BY_ID_QUERY = `
+        SELECT * FROM comentarios
+        WHERE id = ?;
+    `;
+
+    connection.query(SELECT_COMMENT_BY_ID_QUERY, [comentarioId], (err, results) => {
+        if (err) {
+            console.error('Error fetching comment by id:', err);
+            res.status(500).send('Fallo al obtener el comentario');
+        } else {
+            if (results.length > 0) {
+                res.status(200).json(results[0]); // Enviar el comentario encontrado como respuesta
+            } else {
+                res.status(404).send('Comentario no encontrado');
+            }
+        }
+    });
+});
+
+// editar
+app.put('/comentarios/:id', (req, res) => {
+    const comentarioId = req.params.id;
+    const { comentario, img, likes_comentarios } = req.body;
+    const UPDATE_COMENTARIO_QUERY = 'UPDATE comentarios SET comentario=?, img=?, likes_comentarios=? WHERE id=?';
+
+    connection.query(
+        UPDATE_COMENTARIO_QUERY,
+        [comentario, img, likes_comentarios, comentarioId],
+        (err, results) => {
+            if (err) {
+                res.status(500).send('Error al editar el comentario');
+            } else {
+                res.status(200).send('Comentario editado con éxito');
+            }
+        }
+    );
+});
+// eliminar
+app.delete('/comentarios/:id', (req, res) => {
+    const comentarioId = req.params.id;
+    const DELETE_COMENTARIO_QUERY = 'DELETE FROM comentarios WHERE id = ?';
+
+    connection.query(DELETE_COMENTARIO_QUERY, [comentarioId], (err, results) => {
+        if (err) {
+            res.status(500).send('Error al eliminar el comentario');
+        } else {
+            res.status(200).send('Comentario eliminado con éxito');
+        }
+    });
+});

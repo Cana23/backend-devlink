@@ -125,3 +125,16 @@ SELECT publicaciones.*, Users.username AS usuario, Users.email AS correo FROM pu
 
 SELECT p.*, u.username AS usuario, u.email AS correo FROM publicaciones p INNER JOIN Users u ON p.id_usuario = u.id WHERE u.username = 'MrDorer';
 SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username =  'MrDorer';
+
+CREATE TABLE me_gusta (
+    id_like INT PRIMARY KEY AUTO_INCREMENT,
+    id_publicacion INT NOT NULL,
+    id_usuario INT NOT NULL,
+    id_comentario INT,
+    fecha_like DATETIME NOT NULL,
+    FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id),
+    FOREIGN KEY (id_comentario) REFERENCES comentarios(id),
+    FOREIGN KEY (id_usuario) REFERENCES Users(id)
+);
+
+select * from me_gusta;
