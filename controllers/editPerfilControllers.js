@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 const editPerdilControllers = {
 
-    linkGithub: (req, res) => {                     ///add/github/:id  Permite "linkear" una cuenta de github, pero no esta terminado del todo
+    linkGithub: (req, res) => {                     // add/github/:id  Permite "linkear" una cuenta de github, pero no esta terminado del todo
         console.log('Encontrado')
         console.log(req.body)
         const idUser = req.params.id

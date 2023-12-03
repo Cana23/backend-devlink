@@ -23,6 +23,7 @@ const autenticationController = {
                 return response.json();
             }).then((data) => {
                 res.json(data);
+                console.log('Token accesado')  
             })
     },
 
@@ -37,6 +38,7 @@ const autenticationController = {
             return response.json();
         }).then((data) => {
             res.json(data);
+            console.log('Data accesado')
         })
     },
 
