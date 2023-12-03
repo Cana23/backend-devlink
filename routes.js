@@ -74,8 +74,6 @@ const dashPostControllers = require('./controllers/dashPostControllers');
     router.put('/comentarios/:id', dashPostControllers.updateComment)               //No se si sea correcto editar esto
     router.delete('/comentarios/:id', dashPostControllers.deleteComment)
 
-
-
 const countRoutes = () => {
     let count = 0;
     router.stack.forEach((middleware) => {
