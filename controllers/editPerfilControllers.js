@@ -1,4 +1,5 @@
 const connection = require('../db/dbConfig')
+const bcrypt = require('bcrypt');
 
 const editPerdilControllers = {
 
@@ -70,7 +71,7 @@ const editPerdilControllers = {
         }
       },
 
-      editEmail: (req, res) => { //  
+      editarEmail: (req, res) => { //  
         const id = req.params.id
         const newEmail = req.body.finalEmail
     
