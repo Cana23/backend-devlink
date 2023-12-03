@@ -19,6 +19,8 @@ const userController = require('./controllers/UserController')
 
 const likesController = require('./controllers/likesController');
 const postController = require('./controllers/postController');
+const dashUsersController = require('./controllers/dashUsersController');
+const dashPostControllers = require('./controllers/dashPostControllers');
 
 //Authentication controller:
     router.get('/getAccessToken', authenticationController.getAccessToken);
@@ -55,5 +57,35 @@ const postController = require('./controllers/postController');
     router.post('/agregarPublicaciones', upload.single('img'), postController.addPost);
     router.post('/agregarComentarios', postController.addComment);
     
+
+//dashUserControllers:
+    router.get('/users/:id', dashUsersController.getUser);
+    router.post('/users', dashUsersController.addUser);
+    router.put('/users/:id', dashUsersController.editUser);
+    //router.delete removido por cuestiones de eficiencia, usar /eliminar/usuario/:id
+
+//dashPostCOntrolles (posts y comentarios):
+    router.get('/publicaciones/:id', dashPostControllers.getPost);
+    router.put('/publicaciones/:id', dashPostControllers.updatePost);               //No se si sea correcto editar esto
+    router.delete('/publicaciones/:id', dashPostControllers.deletePost);
+
+    router.get('/comentarios', dashPostControllers.getComments)
+    router.get('/comentarios/:id', dashPostControllers.getComment)
+    router.put('/comentarios/:id', dashPostControllers.updateComment)               //No se si sea correcto editar esto
+    router.delete('/comentarios/:id', dashPostControllers.deleteComment)
+
+
+
+const countRoutes = () => {
+    let count = 0;
+    router.stack.forEach((middleware) => {
+      if (middleware.route) {
+        count += 1;
+      }
+    });
+    return count;
+  };
+  
+  console.log(`Total de rutas: ${countRoutes()}`);
 
 module.exports = router;
