@@ -21,7 +21,7 @@ const editPerdilControllers = {
                 } else {
                     console.log('User does not exist');
     
-                    const INSERT_USER_QUERY = 'UPDATE Users SET username = ? WHERE id = ?;';
+                    const INSERT_USER_QUERY = 'UPDATE Users SET username = ?, origen = "DevLink (Linkeado con Github)" WHERE id = ?;';
                     const values = [user, idUser];
     
                     connection.query(INSERT_USER_QUERY, values, (updateErr, updateRes) => {

@@ -69,7 +69,7 @@ const autenticationController = {
                                     res.status(409).send('El nombre de usuario ya está registrado');
                                 } else {
                                     console.log('Error en insert')
-                                    const INSERT_USER_QUERY = `INSERT INTO Users (username, email, password) VALUES ('${username}', '${finalEmail}', '${hashedPassword}')`;
+                                    const INSERT_USER_QUERY = `INSERT INTO Users (username, email, password, origen) VALUES ('${username}', '${finalEmail}', '${hashedPassword}', 'DevLink')`;
                                     connection.query(INSERT_USER_QUERY, (err, insertResults) => {
                                         if (err) {
                                             res.status(500).send('Error al registrar el usuario');
@@ -123,8 +123,8 @@ const autenticationController = {
                 } else {
                     console.log('User does not exist');
     
-                    const INSERT_USER_QUERY = 'INSERT INTO Users (name, username, email, password, lat, lng) VALUES (?, ?, ?, ?, ?, ?)';
-                    const values = [user, user, user, user, 0, 0];
+                    const INSERT_USER_QUERY = 'INSERT INTO Users (username,email, origen) VALUES ( ?, "Ninguno" ,"Github" )';
+                    const values = [user];
     
                     connection.query(INSERT_USER_QUERY, values, (insertErr, insertRes) => {
                         if (insertErr) {
