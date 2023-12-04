@@ -5,7 +5,7 @@ const connection = require('../db/dbConfig')
 const postController = {
 
     publicaciones: (req, res) => {
-        const sql = 'SELECT publicaciones.*, Users.name AS usuario, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
+        const sql = 'SELECT publicaciones.*, Users.username AS username, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
     
         connection.query(sql, (err, results) => {
             if (err) {
@@ -16,6 +16,26 @@ const postController = {
             }
         });
     },
+
+    commentUserHome: (req, res) => {
+      const idPost = req.params.postId
+      const idUser = req.params.userId
+
+      console.log('User: ', idUser,'  Post: ', idPost)
+
+      const sql = 'SELECT c.*, u.username, u.email FROM comentarios c JOIN Users u ON c.id_usuario = u.id WHERE c.id_usuario = ? AND c.id_publicacion = ? ORDER BY c.id DESC LIMIT 1;';
+      const values = [idUser,idPost]
+
+      connection.query(sql,values, (err, results) => {
+          if (err) {
+              console.error('Error fetching comentario:', err); // Add this line
+              res.status(500).send('Error fetching comentario:');
+          } else {
+              res.status(200).json(results);
+              console.log(results)
+          }
+      });
+  },
 
     addPost:  (req, res) => { //requiere la madre esa de la imagen simple
         try {

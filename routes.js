@@ -57,6 +57,7 @@ const dashPostControllers = require('./controllers/dashPostControllers');
     router.post('/agregarPublicaciones', upload.single('img'), postController.addPost);
     router.post('/agregarComentarios', postController.addComment);
     
+    router.get('/comment/:postId/:userId', postController.commentUserHome)
 
 //dashUserControllers:
     router.get('/users/:id', dashUsersController.getUser);
