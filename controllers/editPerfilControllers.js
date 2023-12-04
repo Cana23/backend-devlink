@@ -50,11 +50,11 @@ const editPerdilControllers = {
     editImg: (req, res) => {                         ///  Permite agregar una foto por el mismo usuario **En teoria**
         try {
     
-          const userId = req.body.id_usuario;
+          const userId = req.params.id;
           const imagePath = req.file.path; 
+          console.log(imagePath)
       
-      
-          const sql ='UPDATE Users SET img = ? WHERE id = ?;';
+          const sql =`UPDATE Users SET img = ? WHERE id = ?;`;
           const values = [ imagePath, userId ];
       
           connection.query(sql, values, (err, results) => {
@@ -62,6 +62,7 @@ const editPerdilControllers = {
               console.error(err);
               res.status(500).send('Fallo al agregar publicacion');
             } else {
+                console.log(results)
               res.status(200).send('Publicacion agregado exitosamente');
             }
           });

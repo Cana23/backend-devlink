@@ -29,7 +29,7 @@ const UserController = {
 
     PublicationsUser: (req, res) => {
         const user = req.params.user
-        const sql = 'SELECT p.*, u.username AS usuario, u.email AS correo FROM publicaciones p INNER JOIN Users u ON p.id_usuario = u.id WHERE u.username =  ?'
+        const sql = 'SELECT p.*, u.username AS usuario, u.img as imgUser, u.email AS correo FROM publicaciones p INNER JOIN Users u ON p.id_usuario = u.id WHERE u.username =  ?'
         console.log(user)
     
         connection.query(sql,user, (err, results) => {
@@ -44,7 +44,7 @@ const UserController = {
     
     CommentsUser: (req, res) => {
         const user = req.params.user;
-        const sqlSelect = 'SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username = ?';
+        const sqlSelect = 'SELECT c.*, u.username AS usuario,u.img, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username = ?';
 
         connection.query(sqlSelect, user, (err, results) => {
             if (err) {

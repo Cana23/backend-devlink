@@ -5,7 +5,7 @@ const connection = require('../db/dbConfig')
 const postController = {
 
     publicaciones: (req, res) => {
-        const sql = 'SELECT publicaciones.*, Users.username AS username, Users.email AS correo FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id;';
+        const sql = 'SELECT publicaciones.*, Users.username AS username, Users.email AS correo, Users.img AS UserImg  FROM publicaciones INNER JOIN Users ON publicaciones.id_usuario = Users.id ORDER BY publicaciones.id DESC;';
     
         connection.query(sql, (err, results) => {
             if (err) {
@@ -23,7 +23,7 @@ const postController = {
 
       console.log('User: ', idUser,'  Post: ', idPost)
 
-      const sql = 'SELECT c.*, u.username, u.email FROM comentarios c JOIN Users u ON c.id_usuario = u.id WHERE c.id_usuario = ? AND c.id_publicacion = ? ORDER BY c.id DESC LIMIT 1;';
+      const sql = 'SELECT c.*, u.username, u.img, u.email FROM comentarios c JOIN Users u ON c.id_usuario = u.id WHERE c.id_usuario = ? AND c.id_publicacion = ? ORDER BY c.id DESC LIMIT 1;';
       const values = [idUser,idPost]
 
       connection.query(sql,values, (err, results) => {
@@ -42,7 +42,7 @@ const postController = {
 
     console.log('Post: ', idPost)
 
-    const sql = 'SELECT c.*, u.username, u.email FROM comentarios c JOIN Users u ON c.id_usuario = u.id WHERE c.id_publicacion = ? ORDER BY c.id DESC;';
+    const sql = 'SELECT c.*, u.username, u.img, u.email FROM comentarios c JOIN Users u ON c.id_usuario = u.id WHERE c.id_publicacion = ? ORDER BY c.id DESC;';
     const values = [idPost]
 
     connection.query(sql,values, (err, results) => {
@@ -51,6 +51,7 @@ const postController = {
             res.status(500).send('Error fetching comentario:');
         } else {
             res.status(200).json(results);
+            console.log(results)
         }
     });
 },
@@ -58,7 +59,7 @@ const postController = {
     addPost:  (req, res) => { //requiere la madre esa de la imagen simple
         try {
           const datos = req.body;
-          const imagePath = req.file.path; // Path to the uploaded file
+          const imagePath = req.file ? req.file.path : null; // Path to the uploaded file
       
           console.log(datos);
       

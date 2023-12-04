@@ -32,7 +32,7 @@ const dashPostControllers = require('./controllers/dashPostControllers');
 
 //Edit profile Controller:
     router.post('/add/github/:id', editProfileController.linkGithub);
-    router.put('/editar/foto', upload.single('img'), editProfileController.editImg);
+    router.put('/editar/foto/:id', upload.single('img'), editProfileController.editImg);
     router.put('/editar/email/:id', editProfileController.editarEmail);
     router.put('/editar/password/:id', editProfileController.editPassword);
     router.put('/editar/description/:id', editProfileController.editDescription);

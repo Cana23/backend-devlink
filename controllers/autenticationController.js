@@ -85,23 +85,32 @@ const autenticationController = {
         }
     },
 
-    login: async (req, res) => {                    //Duhhhhhhhhhhhhh 
-        const { finalEmail, password } = req.body; //Revisar, no deberia funcionar, no usa password, asi que deberia dejar entrar con la password incorrecta y en plaintext
+    login: async (req, res) => {
+        const { finalEmail, password } = req.body;
         const SELECT_USER_QUERY = `SELECT * FROM Users WHERE email = '${finalEmail}'`;
-    
+      
         connection.query(SELECT_USER_QUERY, async (err, results) => {
-            if (err) {
-                res.status(500).send('Error al iniciar sesión');
-            } else {
-                if (results.length > 0) {
-                    // Envía la información del usuario en lugar de un mensaje de éxito
-                    res.status(200).json(results[0]);
+          if (err) {
+            res.status(500).send('Error al iniciar sesión');
+          } else {
+            if (results.length > 0) {
+              const user = results[0];
+      
+              bcrypt.compare(password, user.password, (bcryptErr, bcryptResult) => {
+                if (bcryptErr) {
+                  res.status(500).send('Error al verificar la contraseña');
+                } else if (bcryptResult) {
+                  res.status(200).json(user);
                 } else {
-                    res.status(401).send('Credenciales inválidas');
+                  res.status(401).send('Credenciales inválidas');
                 }
+              });
+            } else {
+              res.status(401).send('Credenciales inválidas');
             }
+          }
         });
-    },
+      },
 
     githubLogin: (req, res) => { 
         console.log(req.body)
