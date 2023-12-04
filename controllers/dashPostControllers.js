@@ -1,3 +1,4 @@
+const connection = require('../db/dbConfig')
 const dashPostControllers = {
 
     getPost: (req, res) => {

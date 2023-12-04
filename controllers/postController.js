@@ -37,6 +37,24 @@ const postController = {
       });
   },
 
+  commentsPost: (req, res) => {
+    const idPost = req.params.postId
+
+    console.log('Post: ', idPost)
+
+    const sql = 'SELECT c.*, u.username, u.email FROM comentarios c JOIN Users u ON c.id_usuario = u.id WHERE c.id_publicacion = ? ORDER BY c.id DESC;';
+    const values = [idPost]
+
+    connection.query(sql,values, (err, results) => {
+        if (err) {
+            console.error('Error fetching comentario:', err); // Add this line
+            res.status(500).send('Error fetching comentario:');
+        } else {
+            res.status(200).json(results);
+        }
+    });
+},
+
     addPost:  (req, res) => { //requiere la madre esa de la imagen simple
         try {
           const datos = req.body;
