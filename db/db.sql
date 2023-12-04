@@ -10,7 +10,8 @@ CREATE TABLE Users (
 	description TEXT,
     lat FLOAT,
     lng FLOAT,
-    img VARCHAR(200)
+    img VARCHAR(200),
+    origen VARCHAR(40)
 );
 
 CREATE TABLE publicaciones (
@@ -36,6 +37,7 @@ CREATE TABLE comentarios (
     FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE me_gusta (
     id_like INT PRIMARY KEY AUTO_INCREMENT,
     id_publicacion INT NOT NULL,
@@ -60,7 +62,6 @@ UPDATE Users SET username = 'elizabeth@yahoo.com' WHERE id = 9;
 
 DELETE FROM Users WHERE id = 1;
 
-<<<<<<< HEAD
 SELECT p.*, u.username AS usuario, u.email AS correo FROM publicaciones p INNER JOIN Users u ON p.id_usuario = u.id WHERE u.username = 'MrDorer';
 SELECT c.*, u.username AS usuario, u.email AS correo FROM comentarios c INNER JOIN Users u ON c.id_usuario = u.id WHERE u.username =  'MrDorer';
 
@@ -76,5 +77,3 @@ CREATE TABLE me_gusta (
 );
 
 select * from me_gusta;
-=======
->>>>>>> b82e69d30b8344d7ab537ec2bd619aeb0be3a19b
