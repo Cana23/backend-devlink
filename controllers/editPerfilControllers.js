@@ -16,7 +16,7 @@ const editPerdilControllers = {
             } else {
                 if (results.length > 0) {
                     const existingUser = results[0];
-                    res.status(500).send;
+                    res.status(409).send(existingUser);
                     console.log('User exists');
                 } else {
                     console.log('User does not exist');

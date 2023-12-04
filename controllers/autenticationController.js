@@ -19,11 +19,9 @@ const autenticationController = {
                     "Accept": "application/json"
                 }
             }).then((response) => {
-                console.log('respuesta recibida')
                 return response.json();
             }).then((data) => {
                 res.json(data);
-                console.log('Token accesado')  
             })
     },
 
@@ -38,13 +36,11 @@ const autenticationController = {
             return response.json();
         }).then((data) => {
             res.json(data);
-            console.log('Data accesado')
         })
     },
 
     register: async (req, res) => {                //Registrar usuario, duhhhhh       
         const { username, finalEmail, password} = req.body;
-        console.log('we got sum')
     
         try {
             const hashedPassword = await bcrypt.hash(password, 10);
